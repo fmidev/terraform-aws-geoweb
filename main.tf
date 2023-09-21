@@ -49,3 +49,9 @@ provider "helm" {
     }
   }
 }
+
+module "geoweb" {
+  source = "./modules/geoweb"
+  certificateARN = var.certificateARN
+  accountId = var.accountId
+}

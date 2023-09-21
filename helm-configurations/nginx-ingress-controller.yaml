@@ -1,0 +1,25 @@
+controller:
+  kind: DaemonSet
+  service:
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-attributes: load_balancing.cross_zone.enabled=true
+      service.beta.kubernetes.io/aws-load-balancer-type: nlb
+      service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
+      service.beta.kubernetes.io/aws-load-balancer-ssl-ports: https
+    targetPorts:
+      http: tohttps
+      https: http
+  containerPort: {"http": 80,"tohttps": 2443}
+  podAnnotations:
+      eks.amazonaws.com/compute-type: ec2
+  admissionWebhooks:
+    enabled: false
+  config:
+    http-snippet: |
+      server {
+        listen 2443;
+        return 308 https://$host$request_uri;
+      }
+    use-forwarded-headers: "true"
+  ingressClassResource:
+    default: true

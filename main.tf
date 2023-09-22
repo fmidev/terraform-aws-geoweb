@@ -25,11 +25,11 @@ provider "aws" {
 }
 
 data "aws_eks_cluster" "cluster" {
-  name = aws_eks_cluster.terraform-eks-cluster.name
+  name = module.geoweb.cluster_name
 }
 
 data "aws_eks_cluster_auth" "cluster" {
-  name = aws_eks_cluster.terraform-eks-cluster.name
+  name = module.geoweb.cluster_name
 }
 
 provider "kubernetes" {

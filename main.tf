@@ -183,7 +183,7 @@ resource "aws_iam_role_policy_attachment" "terraform-clusterAdmin-policy-attachm
 }
 
 ################################################################################
-# Supporting Resources
+# VPC Module
 ################################################################################
 
 module "vpc" {
@@ -211,56 +211,6 @@ module "vpc" {
   }
 
   tags = local.tags
-}
-
-module "vpc_cni_irsa" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "~> 5.0"
-
-  role_name_prefix      = "VPC-CNI-IRSA"
-  attach_vpc_cni_policy = true
-
-  oidc_providers = {
-    main = {
-      provider_arn               = module.eks.oidc_provider_arn
-      namespace_service_accounts = ["kube-system:aws-node"]
-    }
-  }
-
-  tags = local.tags
-}
-
-module "key_pair" {
-  source  = "terraform-aws-modules/key-pair/aws"
-  version = "~> 2.0"
-
-  key_name_prefix    = local.name
-  create_private_key = true
-
-  tags = local.tags
-}
-
-resource "aws_security_group" "remote_access" {
-  name_prefix = "${local.name}-remote-access"
-  description = "Allow remote SSH access"
-  vpc_id      = module.vpc.vpc_id
-
-  ingress {
-    description = "SSH access"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/8"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = merge(local.tags, { Name = "${local.name}-remote" })
 }
 
 ################################################################################

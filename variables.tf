@@ -1,7 +1,12 @@
 variable "certificateARN" {
-    type = string
+  type = string
 }
 
 variable "accountId" {
-    type = string
+  type = string
+}
+
+variable "cluster_name" {
+  type    = string
+  default = "geoweb"
 }

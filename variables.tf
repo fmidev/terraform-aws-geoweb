@@ -10,3 +10,8 @@ variable "cluster_name" {
   type    = string
   default = "geoweb"
 }
+
+variable "cluster_name" {
+  type    = string
+  default = "eu-north-1"
+}

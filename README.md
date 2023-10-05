@@ -1,10 +1,8 @@
 # terraform-aws-geoweb
 
-TODO: Transforming this repository to be in a form that it can be published as a public Terraform module.
-
 ## Description
 
-Configuration to deploy and update AWS resources and EKS environment.
+Terraform module for creating AWS resources used by GeoWeb applications.
 
 ## Deployment
 

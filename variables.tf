@@ -6,12 +6,12 @@ variable "accountId" {
   type = string
 }
 
-variable "cluster_name" {
+variable "name" {
   type    = string
   default = "geoweb"
 }
 
-variable "cluster_name" {
+variable "region" {
   type    = string
   default = "eu-north-1"
 }

@@ -6,7 +6,7 @@ Terraform module for creating AWS resources used by GeoWeb applications.
 
 ## Deployment
 
-Deployment is for now, during active development, done manually with `terraform apply -var="certificateARN=arn:aws:acm:<region>:123456789012:certificate/*** -var="accountId=123456789012 -var="cluster_name=<name_of_your_cluster>"`
+Deployment is for now, during active development, done manually with `terraform apply -var="certificateARN=arn:aws:acm:<region>:123456789012:certificate/*** -var="accountId=123456789012 -var="name=<name_of_your_cluster>"`
 
 ## Connecting to EKS cluster
 

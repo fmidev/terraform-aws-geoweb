@@ -19,7 +19,7 @@ terraform {
 data "aws_availability_zones" "available" {}
 
 locals {
-  name            = var.cluster_name
+  name            = var.name
   cluster_version = "1.27"
   region          = var.region
 

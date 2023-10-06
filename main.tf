@@ -19,22 +19,21 @@ terraform {
 data "aws_availability_zones" "available" {}
 
 locals {
-  name            = var.name
   cluster_version = "1.27"
-  region          = var.region
+  vpc_cidr        = "10.3.0.0/16"
 
-  vpc_cidr = "10.3.0.0/16"
-  azs      = slice(data.aws_availability_zones.available.names, 0, 3)
+  # eu-north-1 has 3 AZs, if the region used has different amount of AZs, adjust this number
+  azs = slice(data.aws_availability_zones.available.names, 0, 3)
 
   tags = {
-    Example    = local.name
-    GithubRepo = "terraform-aws-geoweb"
-    GithubOrg  = "fmidev"
+    DeploymentName = var.name
+    GithubRepo     = "terraform-aws-geoweb"
+    GithubOrg      = "fmidev"
   }
 }
 
 provider "aws" {
-  region = local.region
+  region = var.region
 }
 
 provider "kubernetes" {
@@ -69,11 +68,11 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "v19.16.0"
 
-  cluster_name                   = local.name
+  cluster_name                   = var.name
   cluster_version                = local.cluster_version
   cluster_endpoint_public_access = true
 
-  iam_role_name            = "${local.name}-cluster-role"
+  iam_role_name            = "${var.name}-cluster-role"
   iam_role_use_name_prefix = false
 
   cluster_addons = {
@@ -125,7 +124,7 @@ module "eks" {
 
     # Default node group - as provided by AWS EKS using Bottlerocket
     bottlerocket_default = {
-      iam_role_name              = "${local.name}-bottlerocket-node-role"
+      iam_role_name              = "${var.name}-bottlerocket-node-role"
       iam_role_use_name_prefix   = false
       use_custom_launch_template = false
 
@@ -154,6 +153,8 @@ resource "aws_iam_role" "terraform-clusterAdmin-iam-role" {
     }]
     Version = "2012-10-17"
   })
+
+  tags = local.tags
 }
 
 resource "aws_iam_policy" "terraform-clusterAdmin-iam-policy" {
@@ -175,6 +176,8 @@ resource "aws_iam_policy" "terraform-clusterAdmin-iam-policy" {
     ]
     Version = "2012-10-17"
   })
+
+  tags = local.tags
 }
 
 resource "aws_iam_role_policy_attachment" "terraform-clusterAdmin-policy-attachment" {
@@ -190,10 +193,11 @@ module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 4.0"
 
-  name = local.name
+  name = var.name
   cidr = local.vpc_cidr
 
-  azs             = local.azs
+  azs = local.azs
+  # cidrsubnet function docs can be found here: https://developer.hashicorp.com/terraform/language/functions/cidrsubnet
   private_subnets = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 4, k)]
   public_subnets  = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 48)]
   intra_subnets   = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 52)]
@@ -201,14 +205,6 @@ module "vpc" {
   enable_nat_gateway     = true
   single_nat_gateway     = true
   create_egress_only_igw = true
-
-  public_subnet_tags = {
-    "kubernetes.io/role/elb" = 1
-  }
-
-  private_subnet_tags = {
-    "kubernetes.io/role/internal-elb" = 1
-  }
 
   tags = local.tags
 }

@@ -281,3 +281,15 @@ resource "helm_release" "metrics-server" {
   ]
   depends_on = [module.eks]
 }
+
+resource "aws_dynamodb_table" "dynamodb-terraform-state-lock" {
+  name           = var.lock_name
+  hash_key       = "LockID"
+  read_capacity  = 20
+  write_capacity = 20
+
+  attribute {
+    name = "LockID"
+    type = "S"
+  }
+}

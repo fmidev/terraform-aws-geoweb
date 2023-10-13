@@ -99,15 +99,6 @@ module "eks" {
   subnet_ids               = module.vpc.private_subnets
   control_plane_subnet_ids = module.vpc.intra_subnets
 
-  manage_aws_auth_configmap = true
-  aws_auth_roles = [
-    {
-      rolearn  = aws_iam_role.terraform-clusterAdmin-iam-role.arn
-      username = aws_iam_role.terraform-clusterAdmin-iam-role.name
-      groups   = ["system:masters"]
-    },
-  ]
-
   eks_managed_node_group_defaults = {
     ami_type       = "AL2_x86_64"
     instance_types = ["t3.medium"]

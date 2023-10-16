@@ -100,13 +100,6 @@ module "eks" {
   control_plane_subnet_ids = module.vpc.intra_subnets
 
   manage_aws_auth_configmap = true
-  aws_auth_roles = [
-    {
-      rolearn  = aws_iam_role.terraform-clusterAdmin-iam-role.arn
-      username = aws_iam_role.terraform-clusterAdmin-iam-role.name
-      groups   = ["system:masters"]
-    },
-  ]
 
   eks_managed_node_group_defaults = {
     ami_type       = "AL2_x86_64"
@@ -134,55 +127,6 @@ module "eks" {
   }
 
   tags = local.tags
-}
-
-################################################################################
-# IAM role to allow manual access to EKS cluster
-################################################################################
-
-resource "aws_iam_role" "terraform-clusterAdmin-iam-role" {
-  name = "terraform-clusterAdmin-iam-role"
-  assume_role_policy = jsonencode({
-    Statement = [{
-      "Effect" : "Allow",
-      "Principal" : {
-        "AWS" : "arn:aws:iam::${var.accountId}:root"
-      },
-      "Action" : "sts:AssumeRole",
-      "Condition" : {}
-    }]
-    Version = "2012-10-17"
-  })
-
-  tags = local.tags
-}
-
-resource "aws_iam_policy" "terraform-clusterAdmin-iam-policy" {
-  name        = "terraform-clusterAdmin-iam-policy"
-  path        = "/"
-  description = "terraform-clusterAdmin-iam-policy"
-  policy = jsonencode({
-    Statement = [
-      {
-        "Effect" : "Allow",
-        "Action" : [
-          "eks:*",
-        ],
-        "Resource" : [
-          module.eks.cluster_arn,
-          module.eks.eks_managed_node_groups["bottlerocket_default"].node_group_arn
-        ],
-      },
-    ]
-    Version = "2012-10-17"
-  })
-
-  tags = local.tags
-}
-
-resource "aws_iam_role_policy_attachment" "terraform-clusterAdmin-policy-attachment" {
-  policy_arn = aws_iam_policy.terraform-clusterAdmin-iam-policy.arn
-  role       = aws_iam_role.terraform-clusterAdmin-iam-role.name
 }
 
 ################################################################################
@@ -280,4 +224,16 @@ resource "helm_release" "metrics-server" {
     file("${path.module}/helm-configurations/metrics.yaml")
   ]
   depends_on = [module.eks]
+}
+
+resource "aws_dynamodb_table" "dynamodb-terraform-state-lock" {
+  name           = var.lock_name
+  hash_key       = "LockID"
+  read_capacity  = 20
+  write_capacity = 20
+
+  attribute {
+    name = "LockID"
+    type = "S"
+  }
 }

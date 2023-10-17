@@ -19,11 +19,8 @@ terraform {
 data "aws_availability_zones" "available" {}
 
 locals {
-  cluster_version = "1.27"
-  vpc_cidr        = "10.3.0.0/16"
-
-  # eu-north-1 has 3 AZs, if the region used has different amount of AZs, adjust this number
-  azs = slice(data.aws_availability_zones.available.names, 0, 3)
+  # Most regions have 3 AZs, if the region used has more AZs and you want to utilize all of them, adjust this number
+  azs = slice(data.aws_availability_zones.available.names, 0, length(data.aws_availability_zones.available.names))
 
   tags = {
     DeploymentName = var.name
@@ -69,7 +66,7 @@ module "eks" {
   version = "v19.16.0"
 
   cluster_name                   = var.name
-  cluster_version                = local.cluster_version
+  cluster_version                = var.cluster_version
   cluster_endpoint_public_access = true
 
   iam_role_name            = "${var.name}-cluster-role"
@@ -115,14 +112,17 @@ module "eks" {
 
   eks_managed_node_groups = {
 
-    # Default node group - as provided by AWS EKS using Bottlerocket
-    bottlerocket_default = {
-      iam_role_name              = "${var.name}-bottlerocket-node-role"
+    default = {
+      min_size     = var.node_min_count
+      max_size     = var.node_max_count
+      desired_size = var.node_desired_count
+
+      iam_role_name              = "${var.name}-node-role"
       iam_role_use_name_prefix   = false
       use_custom_launch_template = false
 
-      ami_type = "BOTTLEROCKET_x86_64"
-      platform = "bottlerocket"
+      ami_type = var.node_ami_type
+      platform = var.node_platform
     }
   }
 
@@ -138,13 +138,13 @@ module "vpc" {
   version = "~> 4.0"
 
   name = var.name
-  cidr = local.vpc_cidr
+  cidr = var.vpc_cidr
 
   azs = local.azs
   # cidrsubnet function docs can be found here: https://developer.hashicorp.com/terraform/language/functions/cidrsubnet
-  private_subnets = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 4, k)]
-  public_subnets  = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 48)]
-  intra_subnets   = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 52)]
+  private_subnets = [for k, v in local.azs : cidrsubnet(var.vpc_cidr, 4, k)]
+  public_subnets  = [for k, v in local.azs : cidrsubnet(var.vpc_cidr, 8, k + 48)]
+  intra_subnets   = [for k, v in local.azs : cidrsubnet(var.vpc_cidr, 8, k + 52)]
 
   enable_nat_gateway     = true
   single_nat_gateway     = true
@@ -161,8 +161,8 @@ resource "helm_release" "nginx-ingress-controller" {
   name       = "nginx-ingress-controller"
   repository = "https://kubernetes.github.io/ingress-nginx"
   chart      = "ingress-nginx"
-  namespace  = "kube-system"
-  version    = "4.7.2"
+  namespace  = var.helm_chart_used_namespace
+  version    = var.nging_ingress_controller_version
 
   values = [
     file("${path.module}/helm-configurations/nginx-ingress-controller.yaml"),
@@ -176,23 +176,19 @@ resource "helm_release" "nginx-ingress-controller" {
 
 data "kubernetes_service" "nginx_ingress" {
   metadata {
-    namespace = "kube-system"
+    namespace = var.helm_chart_used_namespace
     name      = "nginx-ingress-controller-ingress-nginx-controller"
   }
 
   depends_on = [helm_release.nginx-ingress-controller]
 }
 
-output "nginx-ingress-controller-hostname" {
-  value = data.kubernetes_service.nginx_ingress.status[0].load_balancer[0].ingress[0].hostname
-}
-
 resource "helm_release" "secrets-store-csi-driver" {
   name       = "secrets-store-csi-driver"
   repository = "https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts"
   chart      = "secrets-store-csi-driver"
-  namespace  = "kube-system"
-  version    = "1.3.4"
+  namespace  = var.helm_chart_used_namespace
+  version    = var.secrets_store_csi_driver_version
 
   values = [
     file("${path.module}/helm-configurations/secrets.yaml")
@@ -200,12 +196,12 @@ resource "helm_release" "secrets-store-csi-driver" {
   depends_on = [module.eks]
 }
 
-resource "helm_release" "secrets-store-csi-driver-provider-aws" {
+resource "helm_release" "secrets-store-csi-driver-provider" {
   name       = "secrets-store-csi-driver-provider-aws"
   repository = "https://aws.github.io/secrets-store-csi-driver-provider-aws"
   chart      = "secrets-store-csi-driver-provider-aws"
-  namespace  = "kube-system"
-  version    = "0.3.4"
+  namespace  = var.helm_chart_used_namespace
+  version    = var.secrets_store_csi_driver_provider_version
 
   values = [
     file("${path.module}/helm-configurations/secrets.yaml")
@@ -217,8 +213,8 @@ resource "helm_release" "metrics-server" {
   name       = "metrics-server"
   repository = "https://kubernetes-sigs.github.io/metrics-server/"
   chart      = "metrics-server"
-  namespace  = "kube-system"
-  version    = "3.11.0"
+  namespace  = var.helm_chart_used_namespace
+  version    = var.metrics_server_version
 
   values = [
     file("${path.module}/helm-configurations/metrics.yaml")

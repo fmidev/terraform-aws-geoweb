@@ -113,9 +113,9 @@ module "eks" {
   eks_managed_node_groups = {
 
     default = {
-      min_size     = var.node_min_count
-      max_size     = var.node_max_count
-      desired_size = var.node_desired_count
+      min_size     = var.node_min_size
+      max_size     = var.node_max_size
+      desired_size = var.node_desired_size
 
       iam_role_name              = "${var.name}-node-role"
       iam_role_use_name_prefix   = false

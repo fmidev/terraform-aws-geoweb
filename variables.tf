@@ -27,17 +27,17 @@ variable "vpc_cidr" {
   default = "10.0.0.0/16"
 }
 
-variable "node_min_count" {
+variable "node_min_size" {
   type    = string
   default = "1"
 }
 
-variable "node_max_count" {
+variable "node_max_size" {
   type    = string
   default = "5"
 }
 
-variable "node_desired_count" {
+variable "node_desired_size" {
   type    = string
   default = "1"
 }

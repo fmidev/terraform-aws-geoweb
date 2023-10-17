@@ -52,6 +52,11 @@ variable "node_platform" {
   default = "bottlerocket"
 }
 
+variable "node_instance_types" {
+  type    = list(string)
+  default = ["t3.medium"]
+}
+
 variable "helm_chart_used_namespace" {
   type    = string
   default = "kube-system"

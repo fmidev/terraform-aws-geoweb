@@ -8,11 +8,6 @@ output "load_balancer_hostname" {
   value       = data.kubernetes_service.nginx_ingress.status[0].load_balancer[0].ingress[0].hostname
 }
 
-output "service_nginx_ingress" {
-  description = "Hostname of load balancer created by nginx-ingress-controller"
-  value       = data.kubernetes_service.nginx_ingress
-}
-
 output "vpc" {
   description = "Details of resources created by vpc module"
   value       = module.vpc

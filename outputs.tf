@@ -1,11 +1,13 @@
 output "elastic_ip_address" {
   description = "Elastic IP Address managed by GeoWeb module"
   value       = module.vpc.nat_public_ips[0]
+  sensitive   = true
 }
 
 output "load_balancer_hostname" {
   description = "Hostname of load balancer created by nginx-ingress-controller"
   value       = data.kubernetes_service.nginx_ingress.status[0].load_balancer[0].ingress[0].hostname
+  sensitive   = true
 }
 
 output "vpc" {

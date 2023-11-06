@@ -1,0 +1,5 @@
+configLogicalBackup:
+  logical_backup_schedule: "0 20 * * *"
+  logical_backup_s3_retention_time: "1 day"
+configKubernetes:
+  pod_environment_configmap: "kube-system/pod-config"

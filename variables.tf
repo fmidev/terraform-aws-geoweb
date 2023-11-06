@@ -12,6 +12,14 @@ variable "region" {
   default = "eu-north-1"
 }
 
+variable "awsAccessKeyId" {
+  type = string
+}
+
+variable "awsAccessKeySecret" {
+  type = string
+}
+
 variable "lock_name" {
   type    = string
   default = "default-dynamodb-terraform-state-lock"
@@ -80,4 +88,18 @@ variable "secrets_store_csi_driver_provider_version" {
 variable "metrics_server_version" {
   type    = string
   default = "3.11.0"
+}
+
+variable "zalandoBackupBucket" {
+  type = string
+}
+
+variable "zalandoBackupRegion" {
+  type    = string
+  default = "eu-north-1"
+}
+
+variable "zalandoCustomVars" {
+  type    = map(string)
+  default = {}
 }

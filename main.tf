@@ -217,6 +217,7 @@ resource "helm_release" "metrics-server" {
 }
 
 resource "helm_release" "zalando-postgres-operator" {
+  count      = var.enableZalandoPostgresOperator ? 1 : 0
   name       = "postgres-operator"
   repository = "https://opensource.zalando.com/postgres-operator/charts/postgres-operator"
   chart      = "postgres-operator"
@@ -224,55 +225,33 @@ resource "helm_release" "zalando-postgres-operator" {
   version    = "1.10.1"
 
   values = [
-    file("${path.module}/helm-configurations/postgres-operator.yaml")
+    file("${path.module}/helm-configurations/zalando-postgres-operator.yaml")
   ]
-  set {
-    name  = "configLogicalBackup.logical_backup_s3_access_key_id"
-    value = var.awsAccessKeyId
-  }
-  set {
-    name  = "configLogicalBackup.logical_backup_s3_secret_access_key"
-    value = var.awsAccessKeySecret
-  }
 
-  set {
-    name  = "configAwsOrGcp.wal_s3_bucket"
-    value = var.zalandoBackupBucket
-  }
+  dynamic "set" {
+    for_each = var.zalandoOperatorCustomVars
 
-  set {
-    name  = "configAwsOrGcp.log_s3_bucket"
-    value = var.zalandoBackupBucket
-  }
-
-  set {
-    name  = "configAwsOrGcp.aws_region"
-    value = var.zalandoBackupRegion
-  }
-
-  set {
-    name  = "configLogicalBackup.logical_backup_s3_bucket"
-    value = var.zalandoBackupBucket
-  }
-
-  set {
-    name  = "configLogicalBackup.logical_backup_s3_region"
-    value = var.zalandoBackupRegion
+    content {
+      name  = set.key
+      value = set.value
+    }
   }
 
   depends_on = [module.eks]
 }
 
 resource "kubernetes_config_map" "pod_config" {
+  count = var.enableZalandoPostgresOperator ? 1 : 0
   metadata {
     name      = "pod-config"
     namespace = "kube-system"
   }
 
-  data = merge(yamldecode(file("${path.module}/helm-configurations/db.yaml")), var.zalandoCustomVars)
+  data = merge(yamldecode(file("${path.module}/helm-configurations/zalando-pod-config.yaml")), var.zalandoPodConfigCustomVars)
 }
 
 resource "helm_release" "zalando-postgres-operator-ui" {
+  count      = var.enableZalandoPostgresOperator ? 1 : 0
   name       = "postgres-operator-ui"
   repository = "https://opensource.zalando.com/postgres-operator/charts/postgres-operator-ui"
   chart      = "postgres-operator-ui"
@@ -299,7 +278,7 @@ resource "aws_dynamodb_table" "dynamodb-terraform-state-lock" {
 }
 
 ################################################################################
-# Resources to support AWS EBS storage class
+# Resources to enable AWS EBS storage class
 ################################################################################
 
 module "ebs_csi_irsa_role" {

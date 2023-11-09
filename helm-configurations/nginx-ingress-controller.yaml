@@ -21,5 +21,6 @@ controller:
         return 308 https://$host$request_uri;
       }
     use-forwarded-headers: "true"
+    use-http2: "true"
   ingressClassResource:
     default: true

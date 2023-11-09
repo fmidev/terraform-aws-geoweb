@@ -81,3 +81,18 @@ variable "metrics_server_version" {
   type    = string
   default = "3.11.0"
 }
+
+variable "zalandoPodConfigCustomVars" {
+  type    = map(string)
+  default = {}
+}
+
+variable "zalandoOperatorCustomVars" {
+  type    = map(string)
+  default = {}
+}
+
+variable "enableZalandoPostgresOperator" {
+  type    = bool
+  default = false
+}

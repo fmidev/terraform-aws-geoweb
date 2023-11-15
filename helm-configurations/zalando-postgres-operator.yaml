@@ -3,7 +3,7 @@ configAwsOrGcp:
   log_s3_bucket: "<bucket_name>"
   wal_s3_bucket: "<bucket_name>"
 configLogicalBackup:
-  logical_backup_schedule: "0 20 * * *"
+  logical_backup_schedule: "0 * * * *"
   logical_backup_s3_retention_time: "1 day"
   logical_backup_s3_access_key_id: "<AWS_ACCESS_KEY_ID>"
   logical_backup_s3_secret_access_key: "<AWS_SECRET_ACCESS_KEY>"

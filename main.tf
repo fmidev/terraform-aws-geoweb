@@ -361,8 +361,8 @@ resource "aws_iam_role" "terraform-clusterAdmin-iam-role" {
         "Action" : "sts:AssumeRoleWithWebIdentity",
         "Condition" : {
           "StringLike" : {
-            "${var.oidcProvider}:aud" : "sts.amazonaws.com"
-            "${var.oidcProvider}:sub" : "${var.oidcAllowedRepositoryAndBranch}"
+            "${var.oidcProvider}:aud" : var.oidcAudience,
+            "${var.oidcProvider}:sub" : var.oidcAllowedRepositoryAndBranch
           }
         }
       },
@@ -374,10 +374,8 @@ resource "aws_iam_role" "terraform-clusterAdmin-iam-role" {
         "Action" : "sts:AssumeRoleWithWebIdentity",
         "Condition" : {
           "StringLike" : {
-            "${module.eks.oidc_provider}:aud" : "sts.amazonaws.com",
-            "${module.eks.oidc_provider}:sub" : [
-              "system:serviceaccount:*:*"
-            ]
+            "${module.eks.oidc_provider}:aud" : var.oidcAudience,
+            "${module.eks.oidc_provider}:sub" : var.oidcServiceAccounts
           }
         }
       }

@@ -106,3 +106,13 @@ variable "oidcAllowedRepositoryAndBranch" {
   type    = string
   default = "repo:*/*:ref:refs/heads/*"
 }
+
+variable "oidcServiceAccounts" {
+  type    = list(string)
+  default = ["system:serviceaccount:*:*"]
+}
+
+variable "oidcAudience" {
+  type    = string
+  default = "sts.amazonaws.com"
+}

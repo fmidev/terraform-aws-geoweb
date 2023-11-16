@@ -96,3 +96,13 @@ variable "enableZalandoPostgresOperator" {
   type    = bool
   default = false
 }
+
+variable "oidcProvider" {
+  type    = string
+  default = "token.actions.githubusercontent.com"
+}
+
+variable "oidcAllowedRepositoryAndBranch" {
+  type    = string
+  default = "repo:*/*:ref:refs/heads/*"
+}

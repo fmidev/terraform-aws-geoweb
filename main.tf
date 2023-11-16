@@ -101,6 +101,13 @@ module "eks" {
   control_plane_subnet_ids = module.vpc.intra_subnets
 
   manage_aws_auth_configmap = true
+  aws_auth_roles = [
+    {
+      rolearn  = aws_iam_role.terraform-clusterAdmin-iam-role.arn
+      username = aws_iam_role.terraform-clusterAdmin-iam-role.name
+      groups   = ["system:masters"]
+    },
+  ]
 
   eks_managed_node_groups = {
 
@@ -329,4 +336,92 @@ resource "kubernetes_storage_class" "ebs_csi_encrypted_gp3_storage_class" {
   }
 
   depends_on = [kubernetes_annotations.gp2_default]
+}
+
+################################################################################
+# IAM role used to deploy applications to the cluster
+################################################################################
+
+resource "aws_iam_role" "terraform-clusterAdmin-iam-role" {
+  name = "${var.name}-clusterAdmin-role"
+  assume_role_policy = jsonencode({
+    Statement = [{
+      "Effect" : "Allow",
+      "Principal" : {
+        "AWS" : "arn:aws:iam::${module.vpc.vpc_owner_id}:root"
+      },
+      "Action" : "sts:AssumeRole",
+      "Condition" : {}
+      },
+      {
+        "Effect" : "Allow",
+        "Principal" : {
+          "Federated" : "arn:aws:iam::${module.vpc.vpc_owner_id}:oidc-provider/${var.oidcProvider}"
+        },
+        "Action" : "sts:AssumeRoleWithWebIdentity",
+        "Condition" : {
+          "StringLike" : {
+            "${var.oidcProvider}:aud" : "sts.amazonaws.com"
+            "${var.oidcProvider}:sub" : "${var.oidcAllowedRepositoryAndBranch}"
+          }
+        }
+      },
+      {
+        "Effect" : "Allow",
+        "Principal" : {
+          "Federated" : "${module.eks.oidc_provider_arn}"
+        },
+        "Action" : "sts:AssumeRoleWithWebIdentity",
+        "Condition" : {
+          "StringLike" : {
+            "${module.eks.oidc_provider}:aud" : "sts.amazonaws.com",
+            "${module.eks.oidc_provider}:sub" : [
+              "system:serviceaccount:*:*"
+            ]
+          }
+        }
+      }
+    ]
+    Version = "2012-10-17"
+  })
+
+  tags = local.tags
+}
+
+resource "aws_iam_policy" "terraform-clusterAdmin-iam-policy" {
+  name        = "${var.name}-clusterAdmin-policy"
+  path        = "/"
+  description = "${var.name}-clusterAdmin-policy"
+  policy = jsonencode({
+    Statement = [
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "eks:*",
+        ],
+        "Resource" : [
+          module.eks.cluster_arn,
+          module.eks.eks_managed_node_groups["default"].node_group_arn
+        ],
+      },
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret"
+        ],
+        "Resource" : [
+          "arn:aws:secretsmanager:${var.region}:${module.vpc.vpc_owner_id}:secret:*",
+        ]
+      }
+    ]
+    Version = "2012-10-17"
+  })
+
+  tags = local.tags
+}
+
+resource "aws_iam_role_policy_attachment" "terraform-clusterAdmin-policy-attachment" {
+  policy_arn = aws_iam_policy.terraform-clusterAdmin-iam-policy.arn
+  role       = aws_iam_role.terraform-clusterAdmin-iam-role.name
 }

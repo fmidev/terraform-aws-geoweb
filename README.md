@@ -35,3 +35,7 @@ export TF_VAR_zalandoPodConfigCustomVars='{AWS_ACCESS_KEY_ID="<AWS_ACCESS_KEY_ID
 ```
 
 Run `terraform apply`
+
+## ClusterAdmin role
+
+Default values for OIDC variables are examples for GitHub repositories. Default values allow OIDC control from every GitHub repository. These can be configured to either specific GitHub repositories (recommended when repository is in GitHub) or to different source control systems for example like GitLab. Example values for configuring GitLab as the OIDC provider would be `gitlab.com` for the oidcProvider variable and `project_path:<organization>/<repository>:ref_type:branch:ref:<branch>`. Other repositories can also be used.

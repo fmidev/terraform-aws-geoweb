@@ -251,10 +251,12 @@ resource "kubernetes_config_map" "pod_config" {
   count = var.enableZalandoPostgresOperator ? 1 : 0
   metadata {
     name      = "pod-config"
-    namespace = "kube-system"
+    namespace = var.helm_chart_used_namespace
   }
 
   data = merge(yamldecode(file("${path.module}/helm-configurations/zalando-pod-config.yaml")), var.zalandoPodConfigCustomVars)
+
+  depends_on = [module.eks]
 }
 
 resource "helm_release" "zalando-postgres-operator-ui" {
@@ -264,6 +266,18 @@ resource "helm_release" "zalando-postgres-operator-ui" {
   chart      = "postgres-operator-ui"
   namespace  = var.helm_chart_used_namespace
   version    = "1.10.1"
+
+  depends_on = [module.eks]
+}
+
+module "eks-cluster-autoscaler" {
+  source  = "lablabs/eks-cluster-autoscaler/aws"
+  version = "2.2.0"
+
+  cluster_identity_oidc_issuer     = module.eks.oidc_provider
+  cluster_identity_oidc_issuer_arn = module.eks.oidc_provider_arn
+  cluster_name                     = module.eks.cluster_name
+  namespace                        = var.helm_chart_used_namespace
 
   depends_on = [module.eks]
 }

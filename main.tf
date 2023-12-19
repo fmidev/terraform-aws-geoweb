@@ -94,6 +94,9 @@ module "eks" {
       service_account_role_arn = module.ebs_csi_irsa_role.iam_role_arn
       most_recent              = true
     }
+    amazon-cloudwatch-observability = {
+      most_recent = true
+    }
   }
 
   vpc_id                   = module.vpc.vpc_id
@@ -124,6 +127,10 @@ module "eks" {
       platform                   = var.node_platform
       instance_types             = var.node_instance_types
       iam_role_attach_cni_policy = true
+
+      iam_role_additional_policies = {
+        CloudWatchAgentServerPolicy = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+      }
     }
   }
 

@@ -285,6 +285,8 @@ module "eks-cluster-autoscaler" {
   cluster_identity_oidc_issuer_arn = module.eks.oidc_provider_arn
   cluster_name                     = module.eks.cluster_name
   namespace                        = var.helm_chart_used_namespace
+  irsa_role_name_prefix            = var.name
+  irsa_tags                        = local.tags
 
   depends_on = [module.eks]
 }
@@ -303,6 +305,8 @@ resource "aws_dynamodb_table" "dynamodb-terraform-state-lock" {
     name = "LockID"
     type = "S"
   }
+
+  tags = local.tags
 }
 
 ################################################################################
@@ -321,6 +325,8 @@ module "ebs_csi_irsa_role" {
       namespace_service_accounts = ["kube-system:ebs-csi-controller-sa"]
     }
   }
+
+  tags = local.tags
 }
 
 resource "kubernetes_annotations" "gp2_default" {

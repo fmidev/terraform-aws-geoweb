@@ -24,30 +24,30 @@ output "eks" {
 
 output "dynamodb_lock" {
   description = "Details of dynamodb table resource"
-  value       = resource.aws_dynamodb_table.dynamodb-terraform-state-lock
+  value       = aws_dynamodb_table.dynamodb-terraform-state-lock
   sensitive   = true
 }
 
 output "helm_metrics_server" {
   description = "Details of metrics-server helm release"
-  value       = resource.helm_release.metrics-server
+  value       = helm_release.metrics-server
   sensitive   = true
 }
 
 output "helm_nginx_ingress_controller" {
   description = "Details of nging-ingress-controller helm release"
-  value       = resource.helm_release.nginx-ingress-controller
+  value       = helm_release.nginx-ingress-controller
   sensitive   = true
 }
 
 output "helm_secrets_store_csi_driver" {
   description = "Details of secrets-store-csi-driver helm release"
-  value       = resource.helm_release.secrets-store-csi-driver
+  value       = helm_release.secrets-store-csi-driver
   sensitive   = true
 }
 
 output "helm_secrets_store_csi_driver_provider" {
   description = "Details of secrets-store-csi-driver-provider helm release"
-  value       = resource.helm_release.secrets-store-csi-driver-provider
+  value       = helm_release.secrets-store-csi-driver-provider
   sensitive   = true
 }

@@ -18,6 +18,42 @@ inputs = {
 }
 
 ```
+## Included helm-charts
+
+### nginx-ingress-controller
+
+Deployment includes configuration for an ingress controller, which is configured to run together with AWS, creating single load balancer which routes traffic from desired domains to deployed GeoWeb applications.
+
+### secrets
+
+Deployment includes configuration for Secrets Store CSI Driver + AWS Secrets and Configuration Provider (ASCP) which allows the kubernetes cluster to use secrets from AWS Secret Manager.
+
+### metrics-server
+
+Provides basic resource usage metrics, used manually with `kubectl top node` and `kubectl top pod` and automatically with `cluster-autoscaler`.
+
+### zalando-postgres-operator
+
+Kubernetes operator that provides the Zalando postgresql database functionality.
+
+## EKS Add-ons installed
+
+### coredns, kube-proxy & vpc-cni
+
+Necessary add-ons that ensure that network inside the EKS cluster work correctly.
+
+* coredns handles dns resolution inside the EKS cluster (so pods can communicate without using direct ip addresses)
+* kube-proxy and vpc-cni handles networking
+
+### aws-ebs-csi-driver
+
+Allows PersistentVolumes to be dynamically provisioned using AWS EBS storage. 
+
+Uses role `ebs_csi_irsa_role` and default gp2 storage class is replaced with gp3.
+
+### amazon-cloudwatch-observability
+
+Enables basic AWS CloudWatch logging.
 
 #### Instructions to deploy the module with Zalando Postgres Operator using environment variables
 

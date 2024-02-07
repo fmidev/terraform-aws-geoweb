@@ -24,7 +24,7 @@ inputs = {
 
 Deployment includes configuration for an ingress controller, which is configured to run together with AWS, creating single load balancer which routes traffic from desired domains to deployed GeoWeb applications.
 
-### secrets
+### secrets-store-csi-driver & secrets-store-csi-driver-provider-aws
 
 Deployment includes configuration for Secrets Store CSI Driver + AWS Secrets and Configuration Provider (ASCP) which allows the kubernetes cluster to use secrets from AWS Secret Manager.
 
@@ -32,9 +32,14 @@ Deployment includes configuration for Secrets Store CSI Driver + AWS Secrets and
 
 Provides basic resource usage metrics, used manually with `kubectl top node` and `kubectl top pod` and automatically with `cluster-autoscaler`.
 
-### zalando-postgres-operator
+### cluster-autoscaler
 
-Kubernetes operator that provides the Zalando postgresql database functionality.
+Monitors the resource usage of the applications in EKS and automatically scales the amount of nodes. Doesn't scale past min_size and max_size defined in the node group. 
+* Note that metrics-server can show memory usage values of over 100% (even 130% in extreme cases) which is totally fine and doesn't require scaling. This is because metrics-server reserves a small amount of memory for each possible pod that it doesn't consider in the percentage, and as we have set the maximum number of pods to 110 in vpc-cni, it thinks we have around 1.5G lower memory available per node that we actually have. cluster-autoscaler correctly uses the real amount of memory available.
+
+### zalando-postgres-operator & zalando-postgres-operator-ui
+
+Kubernetes operator that provides the Zalando postgresql database functionality, with extra chart that provides UI for managing it.
 
 ## EKS Add-ons installed
 

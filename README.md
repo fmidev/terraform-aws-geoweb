@@ -72,7 +72,7 @@ As user wants to use Zalando Postgres Operator for their databases, they need to
 ```
 export TF_VAR_enableZalandoPostgresOperator=true
 export TF_VAR_zalandoOperatorCustomVars='{"configLogicalBackup.logical_backup_s3_access_key_id"="<AWS_ACCESS_KEY_ID>","configLogicalBackup.logical_backup_s3_secret_access_key"="<AWS_SECRET_ACCESS_KEY>","configLogicalBackup.logical_backup_s3_bucket"="<S3-bucket-name>","configAwsOrGcp.log_s3_bucket"="<S3-bucket-name>","configAwsOrGcp.wal_s3_bucket"="<S3-bucket-name>"}'
-export TF_VAR_zalandoPodConfigCustomVars='{AWS_ACCESS_KEY_ID="<AWS_ACCESS_KEY_ID>",AWS_SECRET_ACCESS_KEY="<AWS_SECRET_ACCESS_KEY>",WALG_S3_PREFIX="s3://<S3-bucket-name>",CLONE_AWS_ACCESS_KEY_ID="<AWS_ACCESS_KEY_ID>",CLONE_AWS_SECRET_ACCESS_KEY="<AWS_SECRET_ACCESS_KEY>",CLONE_WALG_S3_PREFIX="s3://<S3-bucket-name>"}'
+export TF_VAR_zalandoPodConfigCustomVars='{AWS_ACCESS_KEY_ID="<AWS_ACCESS_KEY_ID>",AWS_SECRET_ACCESS_KEY="<AWS_SECRET_ACCESS_KEY>",CLONE_AWS_ACCESS_KEY_ID="<AWS_ACCESS_KEY_ID>",CLONE_AWS_SECRET_ACCESS_KEY="<AWS_SECRET_ACCESS_KEY>"}'
 ```
 
 Run `terraform apply`
@@ -80,3 +80,11 @@ Run `terraform apply`
 ## ClusterAdmin role
 
 Default values for OIDC variables are examples for GitHub repositories. Default values allow OIDC control from every GitHub repository. These can be configured to either specific GitHub repositories (recommended when repository is in GitHub) or to different source control systems for example like GitLab. Example values for configuring GitLab as the OIDC provider would be `gitlab.com` for the oidcProvider variable and `project_path:<organization>/<repository>:ref_type:branch:ref:<branch>`. Other repositories can also be used.
+
+## Creating a new release
+
+1. Merge all changes you want included to main
+2. Navigate to Releases --> Draft a new release
+3. Choose if the update is major, minor or patch, follow [Semantic Versioning](https://semver.org)
+4. Create a new tag on publish, match the release name to the new version & write description of the changes
+5. Publish release and the new version will automatically sync to [Terraform registry](https://registry.terraform.io/modules/fmidev/geoweb/aws/latest)

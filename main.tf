@@ -21,6 +21,9 @@ data "aws_availability_zones" "available" {}
 locals {
   # Most regions have 3 AZs, if the region used has more AZs and you want to utilize all of them, adjust this number
   azs = slice(data.aws_availability_zones.available.names, 0, length(data.aws_availability_zones.available.names))
+  az_to_subnet = {
+    for idx, az in local.azs : az => cidrsubnet(var.vpc_cidr, 4, idx)
+  }
 
   tags = {
     DeploymentName = var.name
@@ -113,8 +116,7 @@ module "eks" {
   ]
 
   eks_managed_node_groups = {
-
-    default = {
+    for az, subnet in local.az_to_subnet : "node-group-${az}" => {
       min_size     = var.node_min_size
       max_size     = var.node_max_size
       desired_size = var.node_desired_size
@@ -127,6 +129,8 @@ module "eks" {
       platform                   = var.node_platform
       instance_types             = var.node_instance_types
       iam_role_attach_cni_policy = true
+
+      subnet_ids = [subnet]
 
       iam_role_additional_policies = {
         CloudWatchAgentServerPolicy = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
@@ -150,7 +154,7 @@ module "vpc" {
 
   azs = local.azs
   # cidrsubnet function docs can be found here: https://developer.hashicorp.com/terraform/language/functions/cidrsubnet
-  private_subnets = [for k, v in local.azs : cidrsubnet(var.vpc_cidr, 4, k)]
+  private_subnets = values(local.az_to_subnet)
   public_subnets  = [for k, v in local.azs : cidrsubnet(var.vpc_cidr, 8, k + 96)]
   intra_subnets   = [for k, v in local.azs : cidrsubnet(var.vpc_cidr, 8, k + 102)]
 
@@ -424,10 +428,10 @@ resource "aws_iam_policy" "terraform-clusterAdmin-iam-policy" {
         "Action" : [
           "eks:*",
         ],
-        "Resource" : [
-          module.eks.cluster_arn,
-          module.eks.eks_managed_node_groups["default"].node_group_arn
-        ],
+        "Resource" : concat(
+          [module.eks.cluster_arn],
+          [for ng in keys(module.eks.eks_managed_node_groups) : module.eks.eks_managed_node_groups[ng].node_group_arn]
+        ),
       },
       {
         "Effect" : "Allow",

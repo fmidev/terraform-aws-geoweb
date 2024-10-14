@@ -21,8 +21,10 @@ data "aws_availability_zones" "available" {}
 locals {
   # Most regions have 3 AZs, if the region used has more AZs and you want to utilize all of them, adjust this number
   azs = slice(data.aws_availability_zones.available.names, 0, length(data.aws_availability_zones.available.names))
-  az_to_subnet = {
-    for idx, az in local.azs : az => cidrsubnet(var.vpc_cidr, 4, idx)
+
+  # Mapping of AZs to private subnet IDs
+  az_to_subnet_id = {
+    for idx, az in local.azs : az => module.vpc.private_subnets[idx]
   }
 
   tags = {
@@ -116,12 +118,12 @@ module "eks" {
   ]
 
   eks_managed_node_groups = {
-    for az, subnet in local.az_to_subnet : "node-group-${az}" => {
+    for az, subnet_id in local.az_to_subnet_id : "node-group-${az}" => {
       min_size     = var.node_min_size
       max_size     = var.node_max_size
       desired_size = var.node_desired_size
 
-      iam_role_name              = "${var.name}-node-role"
+      iam_role_name              = "${var.name}-${az}-node-role"
       iam_role_use_name_prefix   = false
       use_custom_launch_template = false
 
@@ -130,7 +132,7 @@ module "eks" {
       instance_types             = var.node_instance_types
       iam_role_attach_cni_policy = true
 
-      subnet_ids = [subnet]
+      subnet_ids = [subnet_id]
 
       iam_role_additional_policies = {
         CloudWatchAgentServerPolicy = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
@@ -154,7 +156,7 @@ module "vpc" {
 
   azs = local.azs
   # cidrsubnet function docs can be found here: https://developer.hashicorp.com/terraform/language/functions/cidrsubnet
-  private_subnets = values(local.az_to_subnet)
+  private_subnets = [for k, v in local.azs : cidrsubnet(var.vpc_cidr, 4, k)]
   public_subnets  = [for k, v in local.azs : cidrsubnet(var.vpc_cidr, 8, k + 96)]
   intra_subnets   = [for k, v in local.azs : cidrsubnet(var.vpc_cidr, 8, k + 102)]
 

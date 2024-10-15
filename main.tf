@@ -293,6 +293,10 @@ module "eks-cluster-autoscaler" {
   namespace                        = var.helm_chart_used_namespace
   irsa_role_name_prefix            = var.name
   irsa_tags                        = local.tags
+  values                           = <<EOF
+extraArgs:
+  balance-similar-node-groups: true
+EOF
 
   depends_on = [module.eks]
 }

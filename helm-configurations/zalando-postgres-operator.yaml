@@ -11,3 +11,6 @@ configLogicalBackup:
   logical_backup_s3_region: "eu-north-1"
 configKubernetes:
   pod_environment_configmap: "pod-config"
+  enable_pod_antiaffinity: true
+  pod_antiaffinity_topology_key: "topology.kubernetes.io/zone"
+  pod_antiaffinity_preferred_during_scheduling: true

@@ -22,6 +22,11 @@ locals {
   # Most regions have 3 AZs, if the region used has more AZs and you want to utilize all of them, adjust this number
   azs = slice(data.aws_availability_zones.available.names, 0, length(data.aws_availability_zones.available.names))
 
+  # Mapping of AZs to private subnet IDs
+  az_to_subnet_id = {
+    for idx, az in local.azs : az => module.vpc.private_subnets[idx]
+  }
+
   tags = {
     DeploymentName = var.name
     GithubRepo     = "terraform-aws-geoweb"
@@ -113,13 +118,12 @@ module "eks" {
   ]
 
   eks_managed_node_groups = {
-
-    default = {
+    for az, subnet_id in local.az_to_subnet_id : "node-group-${az}" => {
       min_size     = var.node_min_size
       max_size     = var.node_max_size
       desired_size = var.node_desired_size
 
-      iam_role_name              = "${var.name}-node-role"
+      iam_role_name              = "${var.name}-${az}-node-role"
       iam_role_use_name_prefix   = false
       use_custom_launch_template = false
 
@@ -127,6 +131,8 @@ module "eks" {
       platform                   = var.node_platform
       instance_types             = var.node_instance_types
       iam_role_attach_cni_policy = true
+
+      subnet_ids = [subnet_id]
 
       iam_role_additional_policies = {
         CloudWatchAgentServerPolicy = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
@@ -287,6 +293,10 @@ module "eks-cluster-autoscaler" {
   namespace                        = var.helm_chart_used_namespace
   irsa_role_name_prefix            = var.name
   irsa_tags                        = local.tags
+  values                           = <<EOF
+extraArgs:
+  balance-similar-node-groups: true
+EOF
 
   depends_on = [module.eks]
 }
@@ -424,10 +434,10 @@ resource "aws_iam_policy" "terraform-clusterAdmin-iam-policy" {
         "Action" : [
           "eks:*",
         ],
-        "Resource" : [
-          module.eks.cluster_arn,
-          module.eks.eks_managed_node_groups["default"].node_group_arn
-        ],
+        "Resource" : concat(
+          [module.eks.cluster_arn],
+          [for ng in keys(module.eks.eks_managed_node_groups) : module.eks.eks_managed_node_groups[ng].node_group_arn]
+        ),
       },
       {
         "Effect" : "Allow",

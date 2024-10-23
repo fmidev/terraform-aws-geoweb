@@ -14,3 +14,5 @@ configKubernetes:
   enable_pod_antiaffinity: true
   pod_antiaffinity_topology_key: "topology.kubernetes.io/zone"
   pod_antiaffinity_preferred_during_scheduling: true
+  enable_pod_disruption_budget: true
+  pdb_master_label_selector: false

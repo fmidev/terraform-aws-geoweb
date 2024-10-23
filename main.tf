@@ -242,7 +242,7 @@ resource "helm_release" "zalando-postgres-operator" {
   repository = "https://opensource.zalando.com/postgres-operator/charts/postgres-operator"
   chart      = "postgres-operator"
   namespace  = var.helm_chart_used_namespace
-  version    = "1.10.1"
+  version    = "1.13.0"
 
   values = [
     file("${path.module}/helm-configurations/zalando-postgres-operator.yaml")
@@ -278,7 +278,7 @@ resource "helm_release" "zalando-postgres-operator-ui" {
   repository = "https://opensource.zalando.com/postgres-operator/charts/postgres-operator-ui"
   chart      = "postgres-operator-ui"
   namespace  = var.helm_chart_used_namespace
-  version    = "1.10.1"
+  version    = "1.13.0"
 
   depends_on = [module.eks]
 }

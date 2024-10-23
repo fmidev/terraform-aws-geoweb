@@ -4,6 +4,18 @@
 
 Terraform module for creating AWS resources used by GeoWeb applications.
 
+## Upgrade notes
+
+### v1.7.0
+
+Zalando Postgres Operator was updated to v1.13.0. **Before** upgrading to this version, operator CRDs [must be updated manually](https://github.com/zalando/postgres-operator/blob/v1.13.0/docs/administrator.md#upgrading-the-operator).
+
+```
+kubectl apply -f https://raw.githubusercontent.com/zalando/postgres-operator/refs/tags/v1.13.0/charts/postgres-operator/crds/operatorconfigurations.yaml
+kubectl apply -f https://raw.githubusercontent.com/zalando/postgres-operator/refs/tags/v1.13.0/charts/postgres-operator/crds/postgresqls.yaml
+kubectl apply -f https://raw.githubusercontent.com/zalando/postgres-operator/refs/tags/v1.13.0/charts/postgres-operator/crds/postgresteams.yaml
+```
+
 ## Instructions
 
 In order to use full capabilities of terraform-aws-geoweb module, user needs to set a few variables before running `terraform apply`. Variables can be passed to the terraform command in multiple ways, choose what best suits your environment, some examples:

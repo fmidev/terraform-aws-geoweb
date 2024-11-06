@@ -272,17 +272,6 @@ resource "kubernetes_config_map" "pod_config" {
   depends_on = [module.eks]
 }
 
-resource "helm_release" "zalando-postgres-operator-ui" {
-  count      = var.enableZalandoPostgresOperator ? 1 : 0
-  name       = "postgres-operator-ui"
-  repository = "https://opensource.zalando.com/postgres-operator/charts/postgres-operator-ui"
-  chart      = "postgres-operator-ui"
-  namespace  = var.helm_chart_used_namespace
-  version    = "1.13.0"
-
-  depends_on = [module.eks]
-}
-
 module "eks-cluster-autoscaler" {
   source  = "lablabs/eks-cluster-autoscaler/aws"
   version = "2.2.0"

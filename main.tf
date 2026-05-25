@@ -99,9 +99,6 @@ module "eks" {
       service_account_role_arn = module.ebs_csi_irsa_role.iam_role_arn
       most_recent              = true
     }
-    amazon-cloudwatch-observability = {
-      most_recent = true
-    }
   }
 
   vpc_id                   = module.vpc.vpc_id
@@ -133,10 +130,6 @@ module "eks" {
       iam_role_attach_cni_policy = true
 
       subnet_ids = [subnet_id]
-
-      iam_role_additional_policies = {
-        CloudWatchAgentServerPolicy = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
-      }
     }
   }
 
@@ -176,7 +169,7 @@ resource "helm_release" "nginx-ingress-controller" {
   repository = "https://kubernetes.github.io/ingress-nginx"
   chart      = "ingress-nginx"
   namespace  = var.helm_chart_used_namespace
-  version    = var.nging_ingress_controller_version
+  version    = var.nginx_ingress_controller_version
 
   values = [
     file("${path.module}/helm-configurations/nginx-ingress-controller.yaml"),
@@ -218,9 +211,9 @@ resource "helm_release" "secrets-store-csi-driver-provider" {
   version    = var.secrets_store_csi_driver_provider_version
 
   values = [
-    file("${path.module}/helm-configurations/secrets.yaml")
+    file("${path.module}/helm-configurations/secrets-provider-aws.yaml")
   ]
-  depends_on = [module.eks]
+  depends_on = [helm_release.secrets-store-csi-driver]
 }
 
 resource "helm_release" "metrics-server" {
@@ -313,7 +306,7 @@ resource "aws_dynamodb_table" "dynamodb-terraform-state-lock" {
 ################################################################################
 
 module "ebs_csi_irsa_role" {
-  source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   version = "~> 5.0"
 
   role_name             = "${var.name}-ebs-csi"

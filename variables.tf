@@ -19,7 +19,7 @@ variable "lock_name" {
 
 variable "cluster_version" {
   type    = string
-  default = "1.28"
+  default = "1.34"
 }
 
 variable "vpc_cidr" {
@@ -62,19 +62,19 @@ variable "helm_chart_used_namespace" {
   default = "kube-system"
 }
 
-variable "nging_ingress_controller_version" {
+variable "nginx_ingress_controller_version" {
   type    = string
-  default = "4.7.2"
+  default = "4.15.1"
 }
 
 variable "secrets_store_csi_driver_version" {
   type    = string
-  default = "1.3.4"
+  default = "1.6.0"
 }
 
 variable "secrets_store_csi_driver_provider_version" {
   type    = string
-  default = "0.3.4"
+  default = "3.1.0"
 }
 
 variable "metrics_server_version" {

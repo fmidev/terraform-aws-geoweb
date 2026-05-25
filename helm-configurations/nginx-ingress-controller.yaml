@@ -14,7 +14,9 @@ controller:
       eks.amazonaws.com/compute-type: ec2
   admissionWebhooks:
     enabled: false
+  allowSnippetAnnotations: true
   config:
+    annotations-risk-level: Critical
     http-snippet: |
       server {
         listen 2443;

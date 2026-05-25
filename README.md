@@ -6,6 +6,15 @@ Terraform module for creating AWS resources used by GeoWeb applications.
 
 ## Upgrade notes
 
+### v1.9.0
+
+Amazon CloudWatch Observability EKS add-on was removed.
+
+#### ASCP v3.1.0 / Secrets Store CSI Driver v1.6.0
+
+Secrets Store CSI Driver v1.6.0 requires Kubernetes 1.30 or newer. Upgrade the EKS cluster before applying this module version to clusters older than 1.30.
+The AWS provider chart now includes Secrets Store CSI Driver as a dependency by default; this module disables that dependency because the driver is managed as a separate Helm release.
+
 ### v1.7.0
 
 Zalando Postgres Operator was updated to v1.13.0. **Before** upgrading to this version, operator CRDs [must be updated manually](https://github.com/zalando/postgres-operator/blob/v1.13.0/docs/administrator.md#upgrading-the-operator).
@@ -39,6 +48,7 @@ Deployment includes configuration for an ingress controller, which is configured
 ### secrets-store-csi-driver & secrets-store-csi-driver-provider-aws
 
 Deployment includes configuration for Secrets Store CSI Driver + AWS Secrets and Configuration Provider (ASCP) which allows the kubernetes cluster to use secrets from AWS Secret Manager.
+The ASCP provider chart dependency installation of Secrets Store CSI Driver is disabled because this module manages the driver as a separate Helm release.
 
 ### metrics-server
 
@@ -67,10 +77,6 @@ Necessary add-ons that ensure that network inside the EKS cluster work correctly
 Allows PersistentVolumes to be dynamically provisioned using AWS EBS storage. 
 
 Uses role `ebs_csi_irsa_role` and default gp2 storage class is replaced with gp3.
-
-### amazon-cloudwatch-observability
-
-Enables basic AWS CloudWatch logging.
 
 #### Instructions to deploy the module with Zalando Postgres Operator using environment variables
 
